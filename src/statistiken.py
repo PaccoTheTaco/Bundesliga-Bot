@@ -10,9 +10,35 @@ def get_team_stats(team_name_or_abbreviation):
     soup = BeautifulSoup(response.text, 'html.parser')
     table_rows = soup.select('tbody tr')
 
+    team_aliases = {
+        "SC Freiburg": ["SC Freiburg", "SCF"],
+        "Borussia Dortmund": ["Borussia Dortmund", "BVB"],
+        "FC Bayern München": ["FC Bayern München", "FCB"],
+        "Bayer 04 Leverkusen": ["Bayer 04 Leverkusen", "B04"],
+        "TSG Hoffenheim": ["TSG Hoffenheim", "TSG"],
+        "1. FC Heidenheim 1846": ["1. FC Heidenheim 1846", "FCH"],
+        "RB Leipzig": ["RB Leipzig", "RBL"],
+        "SV Werder Bremen": ["SV Werder Bremen", "SVW"],
+        "FC Augsburg": ["FC Augsburg", "FCA"],
+        "1. FSV Mainz 05": ["1. FSV Mainz 05", "M05"],
+        "1. FC Union Berlin": ["1. FC Union Berlin", "FCU"],
+        "Borussia Mönchengladbach": ["Borussia Mönchengladbach", "BMG"],
+        "VfL Wolfsburg": ["VfL Wolfsburg", "WOB"],
+        "Holstein Kiel": ["Holstein Kiel", "KSV"],
+        "VfL Bochum 1848": ["VfL Bochum 1848", "BOC"],
+        "VfB Stuttgart": ["VfB Stuttgart", "VFB"],
+        "Eintracht Frankfurt": ["Eintracht Frankfurt", "SGE"],
+        "FC St. Pauli": ["FC St. Pauli", "STP"]
+    }
+
     for row in table_rows:
-        full_name = row.select_one('.team div').text.strip()
-        abbreviation = row.select_one('.team div span').text.strip()
+        full_name_span = row.select_one('.team div span.d-none.d-sm-inline-block')
+        if not full_name_span:
+            continue
+        full_name = full_name_span.text.strip()
+
+        abbreviation_span = row.select_one('.team div span.d-inline-block')
+        abbreviation = abbreviation_span.text.strip() if abbreviation_span else full_name
 
         if team_name_or_abbreviation.lower() in [full_name.lower(), abbreviation.lower()]:
             games = row.select_one('.matches span').text.strip()

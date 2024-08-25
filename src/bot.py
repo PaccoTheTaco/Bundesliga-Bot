@@ -16,6 +16,7 @@ async def setup_hook():
     await bot.load_extension('tabelle')
     await bot.load_extension('statistiken')
     await bot.load_extension('teilnehmer')
+    await bot.load_extension('spielplan')
     await bot.tree.sync()
 
 bot.setup_hook = setup_hook

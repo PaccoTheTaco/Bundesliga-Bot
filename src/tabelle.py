@@ -13,7 +13,9 @@ def get_table_data():
     table = []
     for row in table_rows:
         position = row.select_one('.rank span').text.strip()
-        team_name = row.select_one('.team div').text.strip()
+        team_name_element = row.select_one('.team div')
+        spans = team_name_element.find_all('span')
+        team_name = spans[-1].get_text(strip=True) if spans else team_name_element.get_text(strip=True)
         points = row.select_one('.pts span').text.strip()
         matches_played = row.select_one('.matches span').text.strip()
         table.append({
@@ -34,23 +36,28 @@ def create_embed(start_index=0):
             value=f"Punkte: {team['points']}, Spiele: {team['matches_played']}",
             inline=False
         )
-    
     total_pages = len(table_data) // 6 + (1 if len(table_data) % 6 != 0 else 0)
     current_page = start_index // 6 + 1
     embed.set_footer(text=f"Seite {current_page} von {total_pages}")
-    
     return embed
 
 class TableView(View):
     def __init__(self):
         super().__init__()
         self.current_index = 0
+        self.update_buttons()
 
-    @discord.ui.button(label="Zurück", style=discord.ButtonStyle.primary)
+    def update_buttons(self):
+        total_teams = len(get_table_data())
+        self.children[0].disabled = self.current_index == 0
+        self.children[1].disabled = self.current_index + 6 >= total_teams
+
+    @discord.ui.button(label="Zurück", style=discord.ButtonStyle.primary, disabled=True)
     async def back(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.current_index > 0:
             self.current_index -= 6
             embed = create_embed(self.current_index)
+            self.update_buttons()
             await interaction.response.edit_message(embed=embed, view=self)
 
     @discord.ui.button(label="Weiter", style=discord.ButtonStyle.primary)
@@ -58,6 +65,7 @@ class TableView(View):
         if self.current_index + 6 < len(get_table_data()):
             self.current_index += 6
             embed = create_embed(self.current_index)
+            self.update_buttons()
             await interaction.response.edit_message(embed=embed, view=self)
 
 class Tabelle(commands.Cog):
