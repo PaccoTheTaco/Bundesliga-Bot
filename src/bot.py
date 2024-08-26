@@ -21,6 +21,7 @@ async def setup_hook():
     await bot.load_extension('topspieler')
     await bot.load_extension('news')
     await bot.load_extension('mannschaft')
+    await bot.load_extension('spieler')
     await bot.tree.sync()
 
 bot.setup_hook = setup_hook

@@ -8,6 +8,7 @@ class Spielplan(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.cache = {}
+        self.titles = {}
         self.verein_mapping = {
             "scf": "sc-freiburg",
             "bvb": "borussia-dortmund",
@@ -34,11 +35,13 @@ class Spielplan(commands.Cog):
         if spieltag:
             url = f"https://www.bundesliga.com/de/bundesliga/spieltag/2024-2025/{spieltag}"
             is_verein = False
+            title = f"Spieltag {spieltag}"
         elif verein:
             verein_key = verein.lower().replace(' ', '-')
             verein = self.verein_mapping.get(verein_key, verein_key)
             url = f"https://www.bundesliga.com/de/bundesliga/spieltag/2024-2025/{verein}"
             is_verein = True
+            title = f"Spielplan {verein.capitalize()}"
         else:
             await interaction.response.send_message("Bitte gib entweder einen Spieltag oder einen Verein an.", ephemeral=True)
             return
@@ -58,7 +61,8 @@ class Spielplan(commands.Cog):
             if spiele:
                 pages = self.paginate(spiele, 6) if is_verein else self.paginate(spiele, 1)
                 self.cache[interaction.user.id] = pages
-                embed = self.create_embed(pages, page=0)
+                self.titles[interaction.user.id] = title
+                embed = self.create_embed(pages, page=0, title=title)
                 await interaction.followup.send(embed=embed, view=self.PaginationView(interaction.user.id, self))
             else:
                 await interaction.followup.send("Konnte keine Spiele finden. Bitte versuche es später erneut.")
@@ -98,8 +102,8 @@ class Spielplan(commands.Cog):
             pages.append(matches_by_day[i:i + page_size])
         return pages
 
-    def create_embed(self, matches_by_day, page):
-        embed = discord.Embed(title="Spielplan", color=0x00ff00)
+    def create_embed(self, matches_by_day, page, title):
+        embed = discord.Embed(title=title, color=0x00ff00)
         page_matches = matches_by_day[page]
 
         for date, matches in page_matches:
@@ -123,7 +127,8 @@ class Spielplan(commands.Cog):
                 if self.page == 0:
                     button.disabled = True
                 self.children[1].disabled = False
-                embed = self.cog.create_embed(self.cog.cache[self.user_id], self.page)
+                title = self.cog.titles.get(self.user_id, "Spielplan")
+                embed = self.cog.create_embed(self.cog.cache[self.user_id], self.page, title)
                 await interaction.response.edit_message(embed=embed, view=self)
 
         @discord.ui.button(label="Weiter", style=discord.ButtonStyle.primary)
@@ -133,7 +138,8 @@ class Spielplan(commands.Cog):
                 if self.page + 1 >= len(self.cog.cache[self.user_id]):
                     button.disabled = True
                 self.children[0].disabled = False
-                embed = self.cog.create_embed(self.cog.cache[self.user_id], self.page)
+                title = self.cog.titles.get(self.user_id, "Spielplan")
+                embed = self.cog.create_embed(self.cog.cache[self.user_id], self.page, title)
                 await interaction.response.edit_message(embed=embed, view=self)
 
         async def interaction_check(self, interaction: discord.Interaction) -> bool:
