@@ -46,7 +46,7 @@ There are commands like:
 
 /team <team>, the command shows the general statistics of the entered team
 
-![Mannschaft](example_pics/team.png)
+![Mannschaft](example_pics/mannschaft.png)
 
 You can try out even more commands on the [Discordserver](https://discord.gg/UMGHwsV2q5) or you can add the bot to your server with the [Link](https://discord.com/oauth2/authorize?client_id=1277140018648977409) and then try it out
 
